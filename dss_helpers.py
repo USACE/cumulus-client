@@ -17,15 +17,28 @@ def get_crsname(EPSG):
     return dss_crsnames[str(EPSG)]
 
 
+def dss_strfmt(dt):
+    """Converts datetime to DSS convention string.
+    Ensures midnight is represented as hour 2400
+    """
+    
+    # If midnight, force datestring to 2400 Hours yesterday
+    if dt.hour == dt.minute == dt.second == dt.microsecond == 0:
+        return (dt - datetime.timedelta(days=1)).strftime('%d%b%Y:2400').upper()
+    
+    return dt.strftime('%d%b%Y:%H%M').upper()
+
+
 def dpart(dt, temporal_duration):
     """Helper function to return correctly formatted DSS d_part string"""
 
+    # Instantaneous Record
     if parse_duration(temporal_duration) == datetime.timedelta(0):
         d = parse_datetime(dt)
     else:
         d = parse_datetime(dt) - parse_duration(temporal_duration)
     
-    return d.strftime('%d%b%Y:%H%M').upper()
+    return dss_strfmt(d)
 
 
 def epart(dt, temporal_duration):
@@ -34,7 +47,7 @@ def epart(dt, temporal_duration):
     if parse_duration(temporal_duration) == datetime.timedelta(0):
         return ""
     else:
-        return parse_datetime(dt).strftime('%d%b%Y:%H%M').upper()
+        return dss_strfmt(parse_datetime(dt))
 
 
 def get_pathname_parts(basin, product, productfile):
